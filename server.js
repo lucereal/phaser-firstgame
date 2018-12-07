@@ -1,6 +1,8 @@
-
+const path = require('path');
 const express = require('express');
 const app = express();
+const index = require('./assets/index.html');
+
 app.set('view engine', 'ejs');
 
 app.use("/public", express.static(__dirname + "/public"));
@@ -9,7 +11,8 @@ app.use('/',express.static(__dirname + '/'));
 
 app.get('/', function(req,res){
     console.log("hi");
-    res.render('index');
+    res.send(path.join(__dirname + '/index.html'));
+    //res.render('index');
 })
 //hi
 

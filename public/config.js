@@ -18,7 +18,9 @@ var time = 0;
 var baddude;
 var baddudeJumpRate = 300;
 var nextBaddudeJump = 0;
-
+var baddudeVel = 100;
+var tempVel = baddudeVel;
+var baddudeJumping = false;
 
 function preload() {
     console.log("in preload");
@@ -119,18 +121,50 @@ function create() {
 }
 
 function update() {
+    
+
+    //trying to make jumping baddude more random
+    if( tempVel > 0 && tempVel < 220){
+        tempVel = tempVel + 1;
+        
+    }else if(tempVel < 0 && tempVel > -220){
+        tempVel = tempVel - 1;
+    }
+    else{
+        if(tempVel>0){
+            tempVel = phaser.Math.Between(baddudeVel,150);
+        }else{
+            tempVel = phaser.Math.Between(baddudeVel,-150);
+        }
+    }
+    
+    baddude.setVelocityX(tempVel);
 
     if (baddude.x >= this.physics.world.bounds.width - baddude.width) {
-        baddude.setVelocityX(-50);
+        // if(baddudeVel > 0){
+        //   //  tempVel *= -1;
+        //     baddudeVel = baddudeVel * -1;
+        // }
+        if(tempVel >0){
+            baddudeVel = baddudeVel * -1;
+            tempVel = tempVel * -1;
+        }
     }
     if (baddude.x <= baddude.width) {
-        baddude.setVelocityX(50);
+        // if(baddudeVel < 0){
+        
+        //     baddudeVel = baddudeVel * -1;
+        // }
+        if(tempVel <0){
+            baddudeVel = baddudeVel * -1;
+            tempVel = tempVel * -1;
+        }
     }
     if (this.time.now > nextBaddudeJump && baddude.body.touching.down) {
         nextBaddudeJump = this.time.now + baddudeJumpRate;
-        baddude.setVelocityY(-300);
-        
+        baddude.setVelocityY(phaser.Math.Between(-375, -300));
     }
+    
 
     console.log('in update');
     if (cursors.left.isDown) {

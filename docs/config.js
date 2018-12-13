@@ -15,8 +15,12 @@ var facing = 'left';
 var fireRate = 200;
 var nextFire = 0;
 var time = 0;
-
-
+var baddude;
+var baddudeJumpRate = 300;
+var nextBaddudeJump = 0;
+var baddudeVel = 100;
+var tempVel = baddudeVel;
+var baddudeJumping = false;
 
 function preload() {
     console.log("in preload");
@@ -28,6 +32,7 @@ function preload() {
     this.load.image('ball', 'assets/mushroom.png');
     this.load.image('bomb', 'assets/red_ball.png');
     this.load.image('bullet', 'assets/bullet45.png');
+    this.load.image('baddude', 'assets/wabbit.png');
 
 }
 function create() {
@@ -97,16 +102,69 @@ function create() {
 
 
     bullets = this.physics.add.group();
-   
-    this.physics.add.collider(bullets, platforms);
+
+    this.physics.add.collider(bullets, platforms, bulletHitPlatform, null, this);
 
     //bullet hits something
     //this.physics.add.collider(bullets,balls,hit,null,this);
 
+
+    baddude = this.physics.add.sprite(100, 100, 'baddude');
+
+    baddude.setCollideWorldBounds(true);
+    this.physics.add.collider(baddude, platforms);
+    baddude.setVelocityX(50);
+    this.physics.add.collider(baddude,bullets, bulletHitBaddude, null, this);
+
+
+
 }
 
 function update() {
-    time = this.time.now;
+    
+
+    //trying to make jumping baddude more random
+    if( tempVel > 0 && tempVel < 220){
+        tempVel = tempVel + 1;
+        
+    }else if(tempVel < 0 && tempVel > -220){
+        tempVel = tempVel - 1;
+    }
+    else{
+        if(tempVel>0){
+            tempVel = phaser.Math.Between(baddudeVel,150);
+        }else{
+            tempVel = phaser.Math.Between(baddudeVel,-150);
+        }
+    }
+    
+    baddude.setVelocityX(tempVel);
+
+    if (baddude.x >= this.physics.world.bounds.width - baddude.width) {
+        // if(baddudeVel > 0){
+        //   //  tempVel *= -1;
+        //     baddudeVel = baddudeVel * -1;
+        // }
+        if(tempVel >0){
+            baddudeVel = baddudeVel * -1;
+            tempVel = tempVel * -1;
+        }
+    }
+    if (baddude.x <= baddude.width) {
+        // if(baddudeVel < 0){
+        
+        //     baddudeVel = baddudeVel * -1;
+        // }
+        if(tempVel <0){
+            baddudeVel = baddudeVel * -1;
+            tempVel = tempVel * -1;
+        }
+    }
+    if (this.time.now > nextBaddudeJump && baddude.body.touching.down) {
+        nextBaddudeJump = this.time.now + baddudeJumpRate;
+        baddude.setVelocityY(phaser.Math.Between(-375, -300));
+    }
+    
 
     console.log('in update');
     if (cursors.left.isDown) {
@@ -136,21 +194,22 @@ function update() {
     }
 
     if (cursors.space.isDown) {
-        if (this.time.now > nextFire) {
+        fire(facing, this);
+        // if (this.time.now > nextFire) {
 
-            nextFire = this.time.now + fireRate;
-    
-            var bullet = bullets.create(player.x, player.y, 'bullet');
-            bullet.body.allowGravity = false;
-    
-            if(facing === 'left'){
-                this.physics.moveTo(bullet, 0, player.y, 200);
-            }else if(facing === 'right'){
-                this.physics.moveTo(bullet, 512, player.y, 200);
-            }
-        }
-        }
-    
+        //     nextFire = this.time.now + fireRate;
+
+        //     var bullet = bullets.create(player.x, player.y, 'bullet');
+        //     bullet.body.allowGravity = false;
+
+        //     if(facing === 'left'){
+        //         this.physics.moveTo(bullet, 0, player.y, 200);
+        //     }else if(facing === 'right'){
+        //         this.physics.moveTo(bullet, 512, player.y, 200);
+        //     }
+        // }
+    }
+
 }
 
 //this will remove the ball from the display when a player 
@@ -172,7 +231,7 @@ function collectBall(player, ball) {
         bomb.setBounce(1);
         bomb.setCollideWorldBounds(true);
         bomb.setVelocity(phaser.Math.Between(-200, 200), 30);
-        bomb.allowGravity = false;
+        bomb.body.allowGravity = false;
 
     }
 }
@@ -187,21 +246,32 @@ function hit(bullet, ball) {
 
 }
 
-// function fire(direction){
-//     if (time > nextFire) {
+function bulletHitBaddude(baddude, bullet){
+    baddude.disableBody(true,true);
+}
+function bulletHitPlatform(bullet, platform) {
+    bullet.disableBody(true, true);
+}
 
-//         nextFire = time + fireRate;
+function hitEdge(baddude, bounds) {
+    console.log("in hitedge");
+    baddude.setVelocityX(-30);
+}
+function fire(direction, thegame) {
+    if (thegame.time.now > nextFire) {
 
-//         var bullet = bullets.create(player.x, player.y, 'bullet');
-//         bullet.body.allowGravity = false;
+        nextFire = thegame.time.now + fireRate;
 
-//         if(direction === 'left'){
-//             game.physics.moveTo(bullet, 0, player.y, 200);
-//         }else if(direction === 'right'){
-//             game.physics.moveTo(bullet, 512, player.y, 200);
-//         }
-//     }
-// }
+        var bullet = bullets.create(player.x, player.y, 'bullet').setScale(0.5);
+        bullet.body.allowGravity = false;
+
+        if (direction === 'left') {
+            thegame.physics.moveTo(bullet, 0, player.y, 200);
+        } else if (direction === 'right') {
+            thegame.physics.moveTo(bullet, 512, player.y, 200);
+        }
+    }
+}
 
 
 //instanciate new phaser game with width, height,
